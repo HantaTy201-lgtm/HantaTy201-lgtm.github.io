@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HantaTy — Minecraft Plugins</title>
+<meta name="description" content="HantaTy — создание Minecraft-плагинов, механик и серверных решений.">
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+:root{
+  --bg:#070909;
+  --panel:#0d1110;
+  --panel2:#111715;
+  --text:#eef5ef;
+  --muted:#829087;
+  --line:#1c2922;
+  --accent:#73ff9a;
+  --accent2:#36d86c;
+  --danger:#ff6d6d;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+html{scroll-behavior:smooth}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:"Space Grotesk",Arial,sans-serif;
+  overflow-x:hidden;
+}
+
+body.locked{overflow:hidden}
+
+::selection{
+  background:var(--accent);
+  color:#061008;
+}
+
+a{
+  color:inherit;
+  text-decoration:none;
+}
+
+/* ---------- PRELOADER ---------- */
+
+.loader{
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  background:#050706;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:opacity .8s ease,visibility .8s ease;
+}
+
+.loader.hidden{
+  opacity:0;
+  visibility:hidden;
+}
+
+.loader-inner{
+  width:min(420px,80vw);
+}
+
+.loader-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:18px;
+  font-family:"JetBrains Mono",monospace;
+  font-size:11px;
+  color:#748279;
+  text-transform:uppercase;
+  letter-spacing:.12em;
+}
+
+.loader-name{
+  color:var(--text);
+}
+
+.loader-bar{
+  height:2px;
+  background:#162019;
+  overflow:hidden;
+}
+
+.loader-progress{
+  width:0%;
+  height:100%;
+  background:var(--accent);
+  box-shadow:0 0 14px rgba(115,255,154,.6);
+  transition:width .12s linear;
+}
+
+.loader-status{
+  margin-top:13px;
+  font-family:"JetBrains Mono",monospace;
+  font-size:10px;
+  color:#536158;
+}
+
+/* ---------- BACKGROUND ---------- */
+
+.grid{
+  position:fixed;
+  inset:0;
+  z-index:-3;
+  background-image:
+    linear-gradient(rgba(115,255,154,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(115,255,154,.035) 1px,transparent 1px);
+  background-size:55px 55px;
+  mask-image:linear-gradient(to bottom,black,transparent 75%);
+}
+
+.noise{
+  position:fixed;
+  inset:0;
+  z-index:10;
+  pointer-events:none;
+  opacity:.025;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+}
+
+.ambient{
+  position:fixed;
+  width:500px;
+  height:500px;
+  border-radius:50%;
+  background:rgba(55,255,112,.07);
+  filter:blur(100px);
+  pointer-events:none;
+  z-index:-2;
+  left:55%;
+  top:22%;
+  transform:translate(-50%,-50%);
+  transition:left 1.2s ease,top 1.2s ease;
+}
+
+/* ---------- NAV ---------- */
+
+.nav{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  z-index:100;
+  padding:22px 5vw;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:linear-gradient(to bottom,rgba(7,9,9,.9),transparent);
+  backdrop-filter:blur(4px);
+}
+
+.logo{
+  font-weight:700;
+  letter-spacing:-.06em;
+  font-size:19px;
+}
+
+.nav-right{
+  display:flex;
+  align-items:center;
+  gap:20px;
+  font-family:"JetBrains Mono",monospace;
+  font-size:10px;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:.1em;
+}
+
+.live{
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:var(--accent);
+  box-shadow:0 0 10px var(--accent);
+  animation:blink 1.8s infinite;
+}
+
+@keyframes blink{
+  0%,100%{opacity:1}
+  50%{opacity:.25}
+}
+
+/* ---------- HERO ---------- */
+
+.hero{
+  min-height:100vh;
+  padding:150px 5vw 65px;
+  display:grid;
+  grid-template-columns:minmax(0,1.05fr) minmax(350px,.95fr);
+  align-items:center;
+  gap:5vw;
+  position:relative;
+}
+
+.hero-copy{
+  position:relative;
+  z-index:3;
+}
+
+.kicker{
+  font-family:"JetBrains Mono",monospace;
+  font-size:11px;
+  color:var(--accent);
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  margin-bottom:28px;
+}
+
+.kicker::before{
+  content:"> ";
+  color:#4b6b56;
+}
+
+.hero h1{
+  font-size:clamp(72px,12vw,175px);
+  line-height:.78;
+  letter-spacing:-.09em;
+  font-weight:700;
+  margin-bottom:38px;
+}
+
+.hero h1 .dim{
+  color:#4c5750;
+}
+
+.hero-text{
+  max-width:650px;
+  color:#a3aea7;
+  font-size:clamp(19px,2.1vw,27px);
+  line-height:1.28;
+  letter-spacing:-.035em;
+}
+
+.hero-meta{
+  margin-top:45px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+
+.tag{
+  border:1px solid var(--line);
+  padding:9px 12px;
+  color:#69766e;
+  font-family:"JetBrains Mono",monospace;
+  font-size:9px;
+  text-transform:uppercase;
+  letter-spacing:.1em;
+  background:rgba(13,17,16,.5);
+}
+
+.hero-bottom{
+  position:absolute;
+  left:5vw;
+  right:5vw;
+  bottom:27px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  color:#4e5a53;
+  font-family:"JetBrains Mono",monospace;
+  font-size:9px;
+  text-transform:uppercase;
+  letter-spacing:.12em;
+}
+
+/* ---------- INTERACTIVE OBJECT ---------- */
+
+.object-stage{
+  min-height:570px;
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  perspective:1000px;
+}
+
+.orbit{
+  position:absolute;
+  width:430px;
+  height:430px;
+  border:1px solid #1b2920;
+  border-radius:50%;
+  transform:rotateX(65deg) rotateZ(-18deg);
+  animation:orbit 16s linear infinite;
+}
+
+.orbit::before,
+.orbit::after{
+  content:"";
+  position:absolute;
+  width:5px;
+  height:5px;
+  border-radius:50%;
+  background:var(--accent);
+  box-shadow:0 0 15px var(--accent);
+}
+
+.orbit::before{top:20px;left:70px}
+.orbit::after{right:55px;bottom:60px}
+
+@keyframes orbit{
+  to{transform:rotateX(65deg) rotateZ(342deg)}
+}
+
+.cube-wrap{
+  width:210px;
+  height:210px;
+  position:relative;
+  transform-style:preserve-3d;
+  transition:transform .35s cubic-bezier(.2,.8,.2,1);
+}
+
+.cube{
+  width:130px;
+  height:130px;
+  position:absolute;
+  left:40px;
+  top:40px;
+  transform-style:preserve-3d;
+  transform:rotateX(-24deg) rotateY(38deg) rotateZ(-4deg);
+  transition:transform .7s cubic-bezier(.2,.8,.2,1);
+}
+
+.face{
+  position:absolute;
+  width:130px;
+  height:130px;
+  border:1px solid rgba(115,255,154,.65);
+  background:linear-gradient(145deg,#18281d,#0b120e);
+  box-shadow:inset 0 0 35px rgba(115,255,154,.05);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:"JetBrains Mono",monospace;
+  font-size:10px;
+  color:#8aa692;
+  letter-spacing:.08em;
+  backface-visibility:hidden;
+}
+
+.face::after{
+  content:"+";
+  position:absolute;
+  color:var(--accent);
+  opacity:.35;
+  font-size:42px;
+  font-weight:300;
+}
+
+.front{transform:translateZ(65px)}
+.back{transform:rotateY(180deg) translateZ(65px)}
+.right{transform:rotateY(90deg) translateZ(65px)}
+.left{transform:rotateY(-90deg) translateZ(65px)}
+.top{transform:rotateX(90deg) translateZ(65px)}
+.bottom{transform:rotateX(-90deg) translateZ(65px)}
+
+.cube-button{
+  position:absolute;
+  inset:0;
+  z-index:5;
+  background:transparent;
+  border:0;
+  cursor:pointer;
+}
+
+.object-label{
+  position:absolute;
+  bottom:35px;
+  left:50%;
+  transform:translateX(-50%);
+  white-space:nowrap;
+  text-align:center;
+  font-family:"JetBrains Mono",monospace;
+  font-size:9px;
+  line-height:1.8;
+  color:#66736b;
+  text-transform:uppercase;
+  letter-spacing:.12em;
+}
+
+.object-label strong{
+  display:block;
+  color:var(--accent);
+  font-weight:500;
+}
+
+.click-hint{
+  position:absolute;
+  top:45px;
+  right:30px;
+  font-family:"JetBrains Mono",monospace;
+  font-size:9px;
+  color:#46524b;
+  text-transform:uppercase;
+  letter-spacing:.1em;
+  animation:hint 2.4s infinite;
+}
+
+@keyframes hint{
+  0%,100%{opacity:.35}
+  50%{opacity:1}
+}
+
+.object-stage.active .cube{
+  transform:rotateX(-20deg) rotateY(398deg) rotateZ(-4deg) scale(1.08);
+}
+
+.object-stage.active .orbit{
+  animation-duration:5s;
+}
+
+/* ---------- MODAL ---------- */
+
+.modal{
+  position:fixed;
+  inset:0;
+  z-index:500;
+  background:rgba(3,5,4,.82);
+  backdrop-filter:blur(14px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:25px;
+  opacity:0;
+  visibility:hidden;
+  transition:opacity .45s ease,visibility .45s ease;
+}
+
+.modal.open{
+  opacity:1;
+  visibility:visible;
+}
+
+.modal-box{
+  width:min(720px,100%);
+  background:#0c110e;
+  border:1px solid #26372c;
+  box-shadow:0 30px 100px rgba(0,0,0,.6);
+  padding:38px;
+  transform:translateY(25px) scale(.97);
+  transition:transform .45s ease;
+}
+
+.modal.open .modal-box{
+  transform:translateY(0) scale(1);
+}
+
+.modal-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:55px;
+}
+
+.modal-code{
+  color:var(--accent);
+  font-family:"JetBrains Mono",monospace;
+  font-size:10px;
+}
+
+.close{
+  border:1px solid #26372c;
+  background:transparent;
+  color:#829087;
+  width:34px;
+  height:34px;
+  cursor:pointer;
+  font-size:18px;
+}
+
+.modal h2{
+  font-size:clamp(42px,7vw,75px);
+  letter-spacing:-.07em;
+  line-height:.9;
+  margin-bottom:25px;
+}
+
+.modal p{
+  color:#8e9a92;
+  font-size:17px;
+  line-height:1.6;
+  max-width:570px;
+}
+
+.modal-terminal{
+  margin-top:35px;
+  border-top:1px solid #1d2a21;
+  padding-top:20px;
+  font-family:"JetBrains Mono",monospace;
+  color:#536158;
+  font-size:10px;
+  line-height:2;
+}
+
+.modal-terminal span{color:var(--accent)}
+
+/* ---------- SECTIONS ---------- */
+
+section:not(.hero){
+  padding:145px 5vw;
+}
+
+.section-label{
+  font-family:"JetBrains Mono",monospace;
+  font-size:10px;
+  color:#56635a;
+  text-transform:uppercase;
+  letter-spacing:.14em;
+  margin-bottom:65px;
+}
+
+.section-title{
+  max-width:1000px;
+  font-size:clamp(45px,7vw,105px);
+  line-height:.9;
+  letter-spacing:-.075em;
+  margin-bottom:95px;
+}
+
+.section-title span{color:#4b564f}
+
+/* ---------- SERVICES ---------- */
+
+.service-list{
+  border-top:1px solid var(--line);
+}
+
+.service{
+  display:grid;
+  grid-template-columns:65px 1fr 250px auto;
+  gap:25px;
+  align-items:center;
+  padding:30px 0;
+  border-bottom:1px solid var(--line);
+  transition:padding .4s ease,background .4s ease;
+}
+
+.service:hover{
+  padding-left:18px;
+  padding-right:18px;
+  background:#0c110e;
+}
+
+.service-num{
+  color:#445148;
+  font-family:"JetBrains Mono",monospace;
+  font-size:10px;
+}
+
+.service-name{
+  font-size:clamp(24px,3vw,43px);
+  letter-spacing:-.05em;
+}
+
+.service-desc{
+  color:#657169;
+  font-size:13px;
+  line-height:1.45;
+}
+
+.service-arrow{
+  color:#526057;
+  font-size:20px;
+  transition:transform .3s ease,color .3s ease;
+}
+
+.service:hover .service-arrow{
+  color:var(--accent);
+  transform:translate(4px,-4px);
+}
+
+/* ---------- SLOGANS ---------- */
+
+.slogan{
+  min-height:75vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  border-top:1px solid var(--line);
+}
+
+.slogan h2{
+  max-width:1150px;
+  font-size:clamp(48px,8vw,125px);
+  line-height:.87;
+  letter-spacing:-.08em;
+}
+
+.slogan h2 span{color:#4a554e}
+
+/* ---------- TEXT BLOCK ---------- */
+
+.text-block{
+  background:#eef4ef;
+  color:#071008;
+}
+
+.text-block .section-label{color:#647068}
+
+.text-block h2{
+  max-width:1100px;
+  font-size:clamp(45px,7vw,105px);
+  line-height:.9;
+  letter-spacing:-.075em;
+  margin-bottom:80px;
+}
+
+.text-block h2 em{
+  font-family:Georgia,serif;
+  font-weight:400;
+}
+
+.text-columns{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:7vw;
+}
+
+.text-columns p{
+  font-size:18px;
+  line-height:1.65;
+  color:#526057;
+  max-width:560px;
+}
+
+/* ---------- FOOTER ---------- */
+
+footer{
+  padding:32px 5vw;
+  border-top:1px solid var(--line);
+  display:flex;
+  justify-content:space-between;
+  color:#4d5951;
+  font-family:"JetBrains Mono",monospace;
+  font-size:9px;
+  text-transform:uppercase;
+  letter-spacing:.12em;
+}
+
+/* ---------- REVEAL ---------- */
+
+.reveal{
+  opacity:0;
+  transform:translateY(35px);
+  animation:reveal .95s cubic-bezier(.2,.7,.2,1) forwards;
+}
+
+.delay1{animation-delay:.12s}
+.delay2{animation-delay:.24s}
+.delay3{animation-delay:.36s}
+
+@keyframes reveal{
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* ---------- MOBILE ---------- */
+
+@media(max-width:800px){
+  .nav{padding:20px}
+  .nav-right{font-size:8px}
+
+  .hero{
+    grid-template-columns:1fr;
+    padding:125px 20px 45px;
+    min-height:100svh;
+  }
+
+  .hero h1{font-size:23vw}
+
+  .hero-text{font-size:19px}
+
+  .object-stage{
+    min-height:350px;
+    margin-top:-15px;
+  }
+
+  .orbit{width:300px;height:300px}
+  .cube-wrap{transform:scale(.82)}
+  .click-hint{right:15px;top:15px}
+
+  .hero-bottom{
+    position:static;
+    margin-top:20px;
+    gap:12px;
+    align-items:flex-start;
+  }
+
+  .hero-bottom > :last-child{
+    display:none;
+  }
+
+  section:not(.hero){padding:100px 20px}
+
+  .section-label{margin-bottom:45px}
+
+  .section-title{
+    font-size:49px;
+    margin-bottom:65px;
+  }
+
+  .service{
+    grid-template-columns:30px 1fr auto;
+    gap:12px;
+  }
+
+  .service-desc{display:none}
+
+  .service-name{font-size:27px}
+
+  .text-columns{
+    grid-template-columns:1fr;
+    gap:35px;
+  }
+
+  .text-block h2{font-size:52px}
+
+  .slogan{min-height:65vh}
+
+  .slogan h2{font-size:54px}
+
+  .modal-box{padding:25px}
+
+  .modal-top{margin-bottom:35px}
+
+  footer{
+    padding:28px 20px;
+    gap:20px;
+    flex-wrap:wrap;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important;
+    scroll-behavior:auto!important;
+    transition-duration:.01ms!important;
+  }
+}
+</style>
+</head>
+
+<body class="locked">
+
+<div class="loader" id="loader">
+  <div class="loader-inner">
+    <div class="loader-top">
+      <span class="loader-name">HantaTy</span>
+      <span id="loaderPercent">0%</span>
+    </div>
+    <div class="loader-bar">
+      <div class="loader-progress" id="loaderProgress"></div>
+    </div>
+    <div class="loader-status" id="loaderStatus">initializing interface...</div>
+  </div>
+</div>
+
+<div class="grid"></div>
+<div class="noise"></div>
+<div class="ambient" id="ambient"></div>
+
+<nav class="nav">
+  <a class="logo" href="#">HantaTy</a>
+  <div class="nav-right">
+    <span class="live"></span>
+    Minecraft / Plugins
+  </div>
+</nav>
+
+<main>
+
+<section class="hero">
+
+  <div class="hero-copy">
+    <div class="kicker reveal">Independent Plugin Developer</div>
+
+    <h1 class="reveal delay1">
+      HantaTy<span class="dim">.</span>
+    </h1>
+
+    <p class="hero-text reveal delay2">
+      Создаю Minecraft-плагины, механики и серверные решения,
+      которые превращают обычный сервер в место,
+      куда хочется возвращаться.
+    </p>
+
+    <div class="hero-meta reveal delay3">
+      <span class="tag">Java</span>
+      <span class="tag">Spigot</span>
+      <span class="tag">Paper</span>
+      <span class="tag">Custom Systems</span>
+    </div>
+  </div>
+
+  <div class="object-stage" id="objectStage">
+
+    <div class="orbit"></div>
+
+    <div class="cube-wrap">
+      <div class="cube" id="cube">
+        <div class="face front">PLUGIN</div>
+        <div class="face back">HANTATY</div>
+        <div class="face right">JAVA</div>
+        <div class="face left">PAPER</div>
+        <div class="face top">BUILD</div>
+        <div class="face bottom">CORE</div>
+      </div>
+
+      <button class="cube-button" id="cubeButton" aria-label="Подробнее о разработке"></button>
+    </div>
+
+    <div class="click-hint">click / interact</div>
+
+    <div class="object-label">
+      <strong>HANTA CORE</strong>
+      нажми на объект
+    </div>
+
+  </div>
+
+  <div class="hero-bottom">
+    <span>Build something worth playing.</span>
+    <span>↓ Scroll to explore</span>
+  </div>
+
+</section>
+
+<section>
+
+  <div class="section-label">01 — What I Build</div>
+
+  <h2 class="section-title">
+    Не просто плагины.
+    <span>Механики, которые создают игровой опыт.</span>
+  </h2>
+
+  <div class="service-list">
+
+    <div class="service">
+      <div class="service-num">01</div>
+      <div class="service-name">Gameplay Systems</div>
+      <div class="service-desc">
+        Уникальные механики, прогрессия,
+        события и системы взаимодействия.
+      </div>
+      <div class="service-arrow">↗</div>
+    </div>
+
+    <div class="service">
+      <div class="service-num">02</div>
+      <div class="service-name">Server Plugins</div>
+      <div class="service-desc">
+        Плагины под конкретную идею,
+        правила и архитектуру сервера.
+      </div>
+      <div class="service-arrow">↗</div>
+    </div>
+
+    <div class="service">
+      <div class="service-num">03</div>
+      <div class="service-name">Custom Mechanics</div>
+      <div class="service-desc">
+        То, чего нет в стандартном Minecraft:
+        новые возможности и собственная логика.
+      </div>
+      <div class="service-arrow">↗</div>
+    </div>
+
+    <div class="service">
+      <div class="service-num">04</div>
+      <div class="service-name">Optimization</div>
+      <div class="service-desc">
+        Чистый код, внимание к производительности
+        и стабильная работа системы.
+      </div>
+      <div class="service-arrow">↗</div>
+    </div>
+
+  </div>
+</section>
+
+<section class="slogan">
+  <h2>
+    Сервер запоминают
+    <span>не из-за количества плагинов.</span>
+  </h2>
+</section>
+
+<section class="text-block">
+
+  <div class="section-label">02 — Approach</div>
+
+  <h2>
+    Идея должна
+    <em>работать.</em>
+  </h2>
+
+  <div class="text-columns">
+    <p>
+      Хороший плагин не должен ощущаться отдельной надстройкой.
+      Он должен естественно становиться частью сервера:
+      понятной игроку, интересной в использовании и стабильной
+      в работе.
+    </p>
+
+    <p>
+      Поэтому я начинаю не с кода, а с задачи.
+      Что должен получить игрок? Что должен получить владелец
+      сервера? Какая механика действительно сделает проект
+      интереснее?
+    </p>
+  </div>
+
+</section>
+
+<section>
+
+  <div class="section-label">03 — Philosophy</div>
+
+  <h2 class="section-title">
+    Меньше лишнего.
+    <span>Больше смысла.</span>
+  </h2>
+
+  <div class="service-list">
+
+    <div class="service">
+      <div class="service-num">A</div>
+      <div class="service-name">Idea first</div>
+      <div class="service-desc">
+        Сначала смысл и механика. Потом реализация.
+      </div>
+      <div class="service-arrow">+</div>
+    </div>
+
+    <div class="service">
+      <div class="service-num">B</div>
+      <div class="service-name">Clean logic</div>
+      <div class="service-desc">
+        Система должна быть понятной, предсказуемой и удобной.
+      </div>
+      <div class="service-arrow">+</div>
+    </div>
+
+    <div class="service">
+      <div class="service-num">C</div>
+      <div class="service-name">Player experience</div>
+      <div class="service-desc">
+        Каждая механика должна иметь причину существовать.
+      </div>
+      <div class="service-arrow">+</div>
+    </div>
+
+  </div>
+</section>
+
+<section class="slogan">
+  <h2>
+    Код остаётся внутри.
+    <span>Впечатление остаётся у игрока.</span>
+  </h2>
+</section>
+
+</main>
+
+<footer>
+  <span>HantaTy</span>
+  <span>Minecraft Plugin Development</span>
+</footer>
+
+<div class="modal" id="modal">
+  <div class="modal-box">
+
+    <div class="modal-top">
+      <span class="modal-code">HANTA_CORE / SYSTEM_INFO</span>
+      <button class="close" id="closeModal" aria-label="Закрыть">×</button>
+    </div>
+
+    <h2>Сделать идею<br>играбельной.</h2>
+
+    <p>
+      Я разрабатываю плагины под конкретную задачу:
+      от небольшой механики до полноценной системы сервера.
+      Без ненужных функций и визуального шума — только то,
+      что действительно работает на игровой опыт.
+    </p>
+
+    <div class="modal-terminal">
+      <div><span>></span> system.ready = true</div>
+      <div><span>></span> idea → mechanics → code</div>
+      <div><span>></span> player.experience = priority</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ---------- LOADER ---------- */
+
+const loader = document.getElementById("loader");
+const progress = document.getElementById("loaderProgress");
+const percent = document.getElementById("loaderPercent");
+const status = document.getElementById("loaderStatus");
+
+const messages = [
+  "initializing interface...",
+  "loading core...",
+  "building systems...",
+  "checking mechanics...",
+  "ready."
+];
+
+let value = 0;
+let messageIndex = 0;
+
+const loaderTimer = setInterval(() => {
+  value += Math.floor(Math.random() * 8) + 3;
+
+  if (value >= 100) {
+    value = 100;
+    clearInterval(loaderTimer);
+
+    progress.style.width = "100%";
+    percent.textContent = "100%";
+    status.textContent = messages[4];
+
+    setTimeout(() => {
+      loader.classList.add("hidden");
+      document.body.classList.remove("locked");
+    }, 550);
+
+    return;
+  }
+
+  progress.style.width = value + "%";
+  percent.textContent = value + "%";
+
+  if (value > 20) messageIndex = 1;
+  if (value > 42) messageIndex = 2;
+  if (value > 68) messageIndex = 3;
+
+  status.textContent = messages[messageIndex];
+}, 90);
+
+
+/* ---------- INTERACTIVE CORE ---------- */
+
+const stage = document.getElementById("objectStage");
+const cube = document.getElementById("cube");
+const button = document.getElementById("cubeButton");
+const modal = document.getElementById("modal");
+const closeModal = document.getElementById("closeModal");
+
+button.addEventListener("click", () => {
+  stage.classList.toggle("active");
+
+  if (stage.classList.contains("active")) {
+    setTimeout(() => modal.classList.add("open"), 220);
+  }
+});
+
+closeModal.addEventListener("click", () => {
+  modal.classList.remove("open");
+});
+
+modal.addEventListener("click", (event) => {
+  if (event.target === modal) {
+    modal.classList.remove("open");
+  }
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    modal.classList.remove("open");
+  }
+});
+
+
+/* ---------- MOUSE MOVEMENT ---------- */
+
+const ambient = document.getElementById("ambient");
+
+document.addEventListener("mousemove", (event) => {
+
+  if (window.innerWidth <= 800) return;
+
+  const x = (event.clientX / window.innerWidth - .5);
+  const y = (event.clientY / window.innerHeight - .5);
+
+  cube.style.transform =
+    `rotateX(${-24 + y * 8}deg)
+     rotateY(${38 + x * 18}deg)
+     rotateZ(${-4 + x * 3}deg)`;
+
+  ambient.style.left = (55 + x * 8) + "%";
+  ambient.style.top = (22 + y * 8) + "%";
+});
+
+
+/* ---------- SERVICE HOVER ---------- */
+
+document.querySelectorAll(".service").forEach((item) => {
+
+  item.addEventListener("mouseenter", () => {
+    item.style.borderColor = "#294032";
+  });
+
+  item.addEventListener("mouseleave", () => {
+    item.style.borderColor = "";
+  });
+
+});
+</script>
+
+</body>
+</html>
