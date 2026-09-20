@@ -1,1 +1,0 @@
-# HantaTy201-lgtm.github.io
